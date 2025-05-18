@@ -1,0 +1,6 @@
+@CompleteDeveloperNetworkAPI_HostAddress = http://localhost:5222
+
+GET {{CompleteDeveloperNetworkAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
