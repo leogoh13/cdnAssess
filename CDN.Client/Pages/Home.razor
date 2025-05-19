@@ -1,7 +1,96 @@
 ﻿@page "/"
-
+@using CDN.Entities
+@using CompleteDeveloperNetworkClient.Service
+@inject UserService UserService
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h3>User List</h3>
 
-Welcome to your new app.
+@if (_users == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <label for="">Username / Email</label>
+        <input type="text" @bind-value="@_searchString"/>
+        <button onclick="">Search</button>
+    </div>
+
+    <div>
+        <input type="checkbox" checked="@_showArchivedUsers" @onchange="ToggleArchived"/>
+        <label for="">Show Archived Users</label>
+
+    </div>
+
+    <br/>
+    <div>
+        <table class="user-table">
+            <thead>
+            <tr>
+                <th>UserName</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Hobbies</th>
+                <th>Skills</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in UsersFiltered)
+            {
+                <tr class="@((user.IsArchived ? "archived" : ""))">
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>@user.PhoneNumber</td>
+                    <td>@string.Join(", ", user.Hobbies)</td>
+                    <td>@string.Join(", ", user.Skills)</td>
+                    <td>
+                        <button @onclick="() => UpdateUser(user)">Update</button>
+                        @if (user.IsArchived)
+                            <button @onclick="() => UnarchiveUser(user)">Unarchive</button>
+                        else
+                            <button @onclick="() => ArchiveUser(user)">Archive</button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@code {
+    private List<UserModel>? _users;
+    private string _searchString = "";
+    private bool _showArchivedUsers = false;
+    private IEnumerable<UserModel> UsersFiltered
+    {
+        get => _showArchivedUsers ? _users : _users.Where(x => !x.IsArchived);
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserService.GetUsersAsync();
+        _users = user;
+    }
+
+    void UpdateUser(UserModel user) => Console.WriteLine($"Updating: {user.UserName}");
+
+    async Task ArchiveUser(UserModel user)
+    {
+        var isSuccess = await UserService.ArchiveUserAsync(user.Id);
+        if (isSuccess) user.IsArchived = true;
+    }
+
+    async Task UnarchiveUser(UserModel user)
+    {
+        var isSuccess = await UserService.UnarchiveUserAsync(user.Id);
+        if (isSuccess) user.IsArchived = false;
+    }
+
+    void ToggleArchived() => _showArchivedUsers = !_showArchivedUsers;
+    void SearchUser() => Console.WriteLine($"Searching {_searchString}");
+}

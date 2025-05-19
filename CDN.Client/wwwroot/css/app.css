@@ -112,3 +112,52 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.container {
+    padding: 20px;
+    border: 2px dashed green;
+}
+
+.top-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.new-user {
+    margin-left: auto;
+    background-color: lightblue;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    border: 2px dashed salmon;
+    padding: 10px;
+}
+
+.user-card.archived {
+    opacity: 0.5;
+    border-color: grey;
+}
+
+.avatar {
+    width: 40px;
+    text-align: center;
+}
+
+.user-info {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.actions button {
+    margin-left: 5px;
+}

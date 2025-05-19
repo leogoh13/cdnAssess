@@ -20,14 +20,6 @@ public class UserRepository()
                                (@nameFilter IS NULL OR Username LIKE '%' + @nameFilter + '%') AND
                                (@emailFilter IS NULL OR Email LIKE '%' + @emailFilter + '%')
 
-                           SELECT HobbyName FROM UserHobbies
-                           JOIN Hobby ON HobbyId = Id 
-                           WHERE UserId = @USERID
-
-                           SELECT SkillName, [Level] FROM UserSkill
-                           JOIN Skill ON SkillId = Id
-                           WHERE UserId = @USERID
-                            
                            """;
 
         var parameters = new DynamicParameters();
@@ -36,18 +28,8 @@ public class UserRepository()
 
         try
         {
-            await using var reader = await _repository.QueryMultipleAsync(sql, parameters);
-
-            if (reader == null) throw new DbSqlExecuteReaderException();
-
-            var user = await reader.ReadSingleAsync<User>();
-            var hobbies = await reader.ReadAsync<Hobby>();
-            var skills = await reader.ReadAsync<Skill>();
-
-            user.Hobbies =  hobbies.ToList();
-            user.SkillSets = skills.ToList();
-
-            return [ user ];
+            var users = await _repository.QueryAsync<User>(sql, parameters);
+            return users;
         }
         catch (Exception e)
         {
@@ -55,42 +37,18 @@ public class UserRepository()
             throw;
         }
     }
-    public async Task<User> GetSingleUser(int userId)
+
+    public async Task<User> GetUserOnId(int userId)
     {
-        const string sql = """
-                           
-                           SELECT @USERID = Id 
-                           FROM Users
-                           
-                           SELECT * FROM Users WHERE Id = @USERID
-                           
-                           SELECT HobbyName FROM UserHobbies
-                           JOIN Hobby ON HobbyId = Id 
-                           WHERE UserId = @USERID
-                           
-                           SELECT SkillName, [Level] FROM UserSkill
-                           JOIN Skill ON SkillId = Id
-                           WHERE UserId = @USERID
-                            
-                           """;
+        const string sql = "SELECT * FROM Users WHERE Id = @userId";
 
         var parameters = new DynamicParameters();
-        parameters.Add("@USERID", userId);
+        parameters.Add("@userId", userId);
 
         try
         {
-            await using var reader = await _repository.QueryMultipleAsync(sql, parameters);
-
-            if (reader == null) throw new DbSqlExecuteReaderException();
-
-            var user = await reader.ReadSingleAsync<User>();
-            var hobbies = await reader.ReadAsync<Hobby>();
-            var skills = await reader.ReadAsync<Skill>();
-
-            user.Hobbies =  hobbies.ToList();
-            user.SkillSets = skills.ToList();
-
-            return user;
+            var result = await _repository.QuerySingleAsync<User>(sql, parameters);
+            return result;
         }
         catch (Exception e)
         {
@@ -99,5 +57,134 @@ public class UserRepository()
         }
     }
 
+    public async Task<User?> GetSingleUser(int userId)
+    {
+        const string sql = "SELECT * FROM Users WHERE Id = @userId";
 
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.QuerySingleAsync<User>(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<List<Hobby>> GetUserHobbies(int userId = 0)
+    {
+        const string sql =
+            """
+                SELECT Userid, HobbyName FROM UserHobbies
+                JOIN Hobby ON HobbyId = Id 
+                WHERE @userId = 0 OR UserId = @userId
+            """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.QueryAsync<Hobby>(sql, parameters);
+            return result ?? [];
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<List<Skill>> GetUserSkills(int userId = 0)
+    {
+        const string sql =
+            """
+                SELECT SkillName, [Level] 
+                FROM UserSkill
+                JOIN Skill ON SkillId = Id
+                WHERE UserId = @userId
+            """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.QueryAsync<Skill>(sql, parameters);
+            return result ?? [];
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> AddNewUser(User user)
+    {
+        const string sql =
+            """
+                INSERT INTO Users
+                ( Username, Email, PhoneNumber )
+                VALUES 
+                ( @username, @email, @phone )
+            """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@username", user.Username);
+        parameters.Add("@email", user.Email);
+        parameters.Add("@phone", user.PhoneNumber);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> ArchiveUser(int userId)
+    {
+        const string sql = "UPDATE Users SET IsArchive = 1 WHERE Id = @userId";
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> UnarchiveUser(int userId)
+    {
+        const string sql = "UPDATE Users SET IsArchive = 0 WHERE Id = @userId";
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

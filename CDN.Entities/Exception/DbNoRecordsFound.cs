@@ -1,3 +1,3 @@
 ﻿namespace CDN.Entities.Exception;
 
-public class DbNoRecordsFound(string message) : System.Exception(message);
+public class DbNoRecordsFound() : System.Exception("No records found");

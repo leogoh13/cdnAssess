@@ -7,20 +7,20 @@ namespace CDN.Common.Repository;
 
 public interface IRepository
 {
-    Task<bool> ExecuteAsync(string sql, DynamicParameters? parameters = null);
-    Task<IDataReader?> ExecuteReaderAsync(string sql, DynamicParameters? parameters = null);
+    Task<bool> ExecuteAsync(string sql, object? parameters = null);
+    Task<IDataReader?> ExecuteReaderAsync(string sql, object? parameters = null);
 
-    Task<List<TModelType>?> QueryAsync<TModelType>(string sql, DynamicParameters? parameters = null)
+    Task<List<TModelType>?> QueryAsync<TModelType>(string sql, object? parameters = null)
         where TModelType : class, IDbTable;
 
-    Task<TModelType?> QueryFirstOrDefaultAsync<TModelType>(string sql, DynamicParameters? parameters = null)
+    Task<TModelType?> QueryFirstOrDefaultAsync<TModelType>(string sql, object? parameters = null)
         where TModelType : class, IDbTable;
 
-    Task<TModelType?> QuerySingleAsync<TModelType>(string sql, DynamicParameters? parameters = null)
+    Task<TModelType?> QuerySingleAsync<TModelType>(string sql, object? parameters = null)
         where TModelType : class, IDbTable;
 
-    Task<TType?> ExecuteScalarAsync<TType>(string sql, DynamicParameters? parameters = null)
+    Task<TType?> ExecuteScalarAsync<TType>(string sql, object? parameters = null)
         where TType : struct;
 
-    Task<GridReader> QueryMultipleAsync(string sql, DynamicParameters? parameters = null);
+    // Task<List<object?>> QueryMultipleAsync<T>(string sql, object? parameters = null) where T : class;
 }
