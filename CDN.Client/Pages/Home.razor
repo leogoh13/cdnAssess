@@ -49,9 +49,13 @@ else
                     <td>
                         <button @onclick="() => UpdateUser(user)">Update</button>
                         @if (user.IsArchived)
+                        {
                             <button @onclick="() => UnarchiveUser(user)">Unarchive</button>
+                        }
                         else
+                        {
                             <button @onclick="() => ArchiveUser(user)">Archive</button>
+                        }
                     </td>
                 </tr>
             }
