@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CDN.Repository")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+077180cdf050e54dbea474b67ccc817c0f37d37d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CDN.Repository")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CDN.Repository")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

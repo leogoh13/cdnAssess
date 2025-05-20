@@ -1,12 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CDN.Entities.DbEntity;
+namespace CDN.Entities.Api;
 
-public class Hobby : IDbTable
+public class HobbyRequest
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
     [JsonPropertyName("name")]
-    public string HobbyName { get; set; }
+    public string Name { get; set; }
 }

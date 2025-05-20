@@ -131,14 +131,28 @@ public class UserRepository()
             """
                 INSERT INTO Users
                 ( Username, Email, PhoneNumber )
+                OUTPUT Inserted.Id
                 VALUES 
                 ( @username, @email, @phone )
+                
+                INSERT INTO UserHobbies
+                ( UserId, HobbyId )
+                VALUES
+                ( @userId, @hobbyId )
+                    
+                INSERT INTO UserSkills
+                ( UserId, SkillId )
+                VALUES
+                ( @userId, @skillId )
             """;
 
         var parameters = new DynamicParameters();
+        parameters.Add("@userId", user.Id);
         parameters.Add("@username", user.Username);
         parameters.Add("@email", user.Email);
         parameters.Add("@phone", user.PhoneNumber);
+        parameters.Add("@skillId", user.SkillSets.Select(x => x.Id).ToList());
+        parameters.Add("@hobbyId", user.Hobbies.Select(x => x.Id).ToList());
 
         try
         {
@@ -175,6 +189,63 @@ public class UserRepository()
         const string sql = "UPDATE Users SET IsArchive = 0 WHERE Id = @userId";
         var parameters = new DynamicParameters();
         parameters.Add("@userId", userId);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> UpdateUser(User user)
+    {
+        const string sql =
+            """
+                UPDATE Users
+                SET Username = @username, Email = @email, PhoneNumber = @phone
+                WHERE Id = @userId;
+                
+                DELETE FROM UserSkill WHERE UserId = @userId;
+                DELETE FROM UserHobbies WHERE UserId = @userId;
+                
+                INSERT INTO UserSkill (UserId, SkillId)
+                VALUES ( @userId, @skillId)
+                
+                INSERT INTO UserHobbies (UserId, HobbyId)
+                VALUES ( @userId, @hobbyId)
+            """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", user.Id);
+        parameters.Add("@username", user.Username);
+        parameters.Add("@email", user.Email);
+        parameters.Add("@phone", user.PhoneNumber);
+        parameters.Add("@skillId", user.SkillSets);
+        parameters.Add("@hobbyId", user.Hobbies);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> DeleteUser(User user)
+    {
+        const string sql = "DELETE FROM Users WHERE Id = @userId";
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@userId", user.Id);
 
         try
         {

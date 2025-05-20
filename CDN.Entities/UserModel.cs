@@ -1,9 +1,12 @@
 ﻿using System.Text.Json.Serialization;
+using CDN.Entities.DbEntity;
 
 namespace CDN.Entities;
 
 public class UserModel
 {
+    public bool IsChecked { get; set; }
+
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
@@ -17,10 +20,10 @@ public class UserModel
     public string PhoneNumber { get; set; } = "";
 
     [JsonPropertyName("hobbies")]
-    public List<string> Hobbies { get; set; } = new();
+    public List<Hobby> Hobbies { get; set; } = new();
 
     [JsonPropertyName("skills")]
-    public List<string> Skills { get; set; } = new();
+    public List<Skill> Skills { get; set; } = new();
 
     [JsonPropertyName("isArchived")]
     public bool IsArchived { get; set; }

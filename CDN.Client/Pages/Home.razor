@@ -1,7 +1,11 @@
 ﻿@page "/"
 @using CDN.Entities
+@using CDN.Entities.DbEntity
 @using CompleteDeveloperNetworkClient.Service
 @inject UserService UserService
+@inject SkillService SkillService
+@inject HobbyService HobbyService
+@inject IJSRuntime JS
 <PageTitle>Home</PageTitle>
 
 <h3>User List</h3>
@@ -15,7 +19,15 @@ else
     <div>
         <label for="">Username / Email</label>
         <input type="text" @bind-value="@_searchString"/>
-        <button onclick="">Search</button>
+        <InputSelect @bind-Value="@_searchType">
+            @foreach (var option in Enum.GetValues(typeof(SearchType)))
+            {
+                <option value="@option">@option</option>
+            }
+        </InputSelect>
+        <button onclick="@SearchUser">Search</button>
+        <button onclick="@SearchUser">Delete User</button>
+        <button @onclick="ToggleCreateUserSection">+ New User</button>
     </div>
 
     <div>
@@ -29,6 +41,7 @@ else
         <table class="user-table">
             <thead>
             <tr>
+                <th>Select</th>
                 <th>UserName</th>
                 <th>Email</th>
                 <th>Phone</th>
@@ -41,13 +54,14 @@ else
             @foreach (var user in UsersFiltered)
             {
                 <tr class="@((user.IsArchived ? "archived" : ""))">
+                    <td><input type="checkbox" /></td>
                     <td>@user.UserName</td>
                     <td>@user.Email</td>
                     <td>@user.PhoneNumber</td>
-                    <td>@string.Join(", ", user.Hobbies)</td>
-                    <td>@string.Join(", ", user.Skills)</td>
+                    <td>@string.Join(", ", user.Hobbies.Select(hobby => hobby.HobbyName)?.ToList() ?? [])</td>
+                    <td>@string.Join(", ", user.Skills.Select(skill => skill.SkillName)?.ToList() ?? [])</td>
                     <td>
-                        <button @onclick="() => UpdateUser(user)">Update</button>
+                        <button @onclick="() => ToggleUpdateUserSection(user)">Update</button>
                         @if (user.IsArchived)
                         {
                             <button @onclick="() => UnarchiveUser(user)">Unarchive</button>
@@ -63,12 +77,85 @@ else
         </table>
     </div>
 
+    @if (_showCreateUserSection)
+    {
+        <div>
+            <div>
+                <h3>Create New User</h3>
+
+                <div>
+                    <label>Username:</label>
+                    <input @bind="_newUser.UserName" />
+                </div>
+                <div>
+                    <label>Email:</label>
+                    <input @bind="_newUser.Email" />
+                </div>
+                <div>
+                    <label>Phone:</label>
+                    <input @bind="_newUser.PhoneNumber" />
+                </div>
+
+                <div>
+                    @foreach (var skill in _skillList)
+                    {
+                        <option value="@skill.Id">@skill.SkillName</option>
+                    }
+
+                    @* <button @onclick="InsertNewSkillAndUpdateUser">Create</button> *@
+                </div>
+
+                <div class="modal-actions">
+                    <button @onclick="CreateUser">Create</button>
+                    @* <button @onclick="AddSkills">Add Skills</button> *@
+                    @* <button @onclick="AddHobbies">Add Hobbies</button> *@
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_showUpdateUserSection)
+    {
+        <div>
+            <div>
+                <h3>Update User</h3>
+
+                <div>
+                    <label>Username:</label>
+                    <input @bind="_tobeUpdateUser.UserName" />
+                </div>
+                <div>
+                    <label>Email:</label>
+                    <input @bind="_tobeUpdateUser.Email" />
+                </div>
+                <div>
+                    <label>Phone:</label>
+                    <input @bind="_tobeUpdateUser.PhoneNumber" />
+                </div>
+
+                <div class="modal-actions">
+                    <button @onclick="UpdateUser">Update</button>
+                    @alertMessage
+                </div>
+            </div>
+        </div>
+    }
+
 }
 
 @code {
     private List<UserModel>? _users;
+    private readonly UserModel _newUser = new();
+    private List<Skill> _skillList = new();
+    private List<Hobby> _hobbyList = new();
+    private UserModel _tobeUpdateUser = new();
     private string _searchString = "";
-    private bool _showArchivedUsers = false;
+    private SearchType _searchType;
+    private bool _showArchivedUsers;
+    private bool _showCreateUserSection;
+    private bool _showUpdateUserSection;
+    private bool _showSkillList = false;
+    string alertMessage = "";
     private IEnumerable<UserModel> UsersFiltered
     {
         get => _showArchivedUsers ? _users : _users.Where(x => !x.IsArchived);
@@ -77,11 +164,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserService.GetUsersAsync();
-        _users = user;
+        _users = await UserService.GetUsersAsync();
+        _skillList = await SkillService.GetSkillList();
+        _hobbyList = await HobbyService.GetHobbyList();
     }
 
-    void UpdateUser(UserModel user) => Console.WriteLine($"Updating: {user.UserName}");
+
+    void ToggleArchived() => _showArchivedUsers = !_showArchivedUsers;
 
     async Task ArchiveUser(UserModel user)
     {
@@ -95,6 +184,60 @@ else
         if (isSuccess) user.IsArchived = false;
     }
 
-    void ToggleArchived() => _showArchivedUsers = !_showArchivedUsers;
-    void SearchUser() => Console.WriteLine($"Searching {_searchString}");
+    async Task SearchUser()
+    {
+        var users = await UserService.SearchUsers(_searchString, _searchType);
+        _users = users;
+    }
+
+    async Task CreateUser()
+    {
+
+    }
+
+    async Task UpdateUser()
+    {
+        alertMessage = "";
+        var isUpdated = await UserService.UpdateUser(_tobeUpdateUser);
+
+        alertMessage = isUpdated
+            ? "Successfully Updated."
+            : $"Failed to update user {_tobeUpdateUser.UserName}";
+    }
+
+    void ShowHobbyList()
+    {
+
+    }
+
+    void ShowSkillList()
+    {
+
+    }
+
+    // async Task InsertNewSkillAndUpdateUser(user)
+    // {
+    //
+    // }
+
+    async Task ToggleCreateUserSection()
+    {
+        _showCreateUserSection = !_showCreateUserSection;
+        // var _skillList = await SkillService.GetSkillList();
+        // var result = await HobbyService.GetHobbyList();
+    }
+
+    void ToggleUpdateUserSection(UserModel user)
+    {
+        _tobeUpdateUser = user;
+        _showUpdateUserSection = !_showUpdateUserSection;
+    }
+
+    public enum SearchType
+    {
+        Email,
+        Username
+    }
+
+
 }

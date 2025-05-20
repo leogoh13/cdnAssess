@@ -10,7 +10,7 @@ public class SkillRepository
 {
     private readonly IRepository _repository = new Repository(AppConfig.CdnDbConnection);
 
-    public async Task<List<Skill>> AddNewSkills(List<string> skills)
+    public async Task<bool> AddSkill(Skill skill)
     {
         const string sql = """
                                INSERT INTO Skill
@@ -19,10 +19,36 @@ public class SkillRepository
                                VALUES 
                                ( @skillName )
                            """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("skillName", skill.SkillName);
+
         try
         {
-            var result = await _repository.QueryAsync<Skill>(sql, skills);
-            return result ?? throw new DbInsertFailed("");
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> DeleteSkill(Skill skill)
+    {
+        const string sql = """
+                               DELETE FROM Skill
+                               WHERE SkillName = @skillName
+                           """;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("skillName", skill.SkillName);
+
+        try
+        {
+            var result = await _repository.ExecuteAsync(sql, parameters);
+            return result;
         }
         catch (Exception e)
         {
@@ -51,8 +77,6 @@ public class SkillRepository
     {
         const string sql =
             """
-                sele
-                
                 INSERT INTO @Input (UserId, SkillName, Level)
                 VALUES (
                 
@@ -66,7 +90,7 @@ public class SkillRepository
         var parameters = skills.Select(x =>
         new
         {
-            skillName =  x.Name
+            skillName =  x.SkillName
         });
 
         try
@@ -85,7 +109,7 @@ public class SkillRepository
     {
         const string sql =
             """
-            SELECT SkillName AS Name FROM UserSkill
+            SELECT Id, SkillName FROM UserSkill
             JOIN Skill ON SkillId = Id
             WHERE UserId = @UserId
             """;

@@ -1,4 +1,6 @@
-﻿namespace CDN.Entities.DbEntity;
+﻿using System.Text.Json.Serialization;
+
+namespace CDN.Entities.DbEntity;
 
 public class SkillView
 {
@@ -21,6 +23,9 @@ public class UserHobbies : IDbTable
 
 public class Skill : IDbTable
 {
-    public int SkillId { get; set; }
-    public string Name { get; set; }
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string SkillName { get; set; }
 }

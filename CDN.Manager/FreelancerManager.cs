@@ -19,8 +19,8 @@ public static class FreelancerManager
             UserName = result.Username,
             Email = result.Email ?? "Not Found",
             PhoneNumber = result.PhoneNumber ?? "Not Found",
-            Hobbies = hobbies.Select(user => user.Name).ToList(),
-            Skills = skills.Select(user => user.Name).ToList(),
+            Hobbies = hobbies,
+            Skills = skills,
             IsArchived = false
         };
 
@@ -43,8 +43,8 @@ public static class FreelancerManager
                 UserName = user.Username,
                 Email = user.Email ?? "Not Found",
                 PhoneNumber = user.PhoneNumber ?? "Not Found",
-                Hobbies = hobbies.Select(x => x.Name).ToList(),
-                Skills = skills.Select(x => x.Name).ToList(),
+                Hobbies = hobbies,
+                Skills = skills,
                 IsArchived = false
             };
 
@@ -54,26 +54,20 @@ public static class FreelancerManager
         return result;
     }
 
-    public static async Task<bool> AddUser(User user, List<Hobby> hobbies, SkillView skills)
+    public static async Task<bool> AddUser(UserModel model)
     {
+        var user = new User
+        {
+            Id = model.Id,
+            Username = model.UserName,
+            Email = model.Email,
+            PhoneNumber = model.PhoneNumber,
+            SkillSets = model.Skills,
+            Hobbies = model.Hobbies,
+        };
         var repo = new UserRepository();
         var isUserCreated = await repo.AddNewUser(user);
-        if (!isUserCreated)
-            return false;
-
-        return true;
-    }
-
-    private static async Task<bool> AdduserSkills()
-    {
-        return true;
-    }
-
-    private static async Task<List<Skill>> AddNewSkill(SkillView skills)
-    {
-        var repo = new SkillRepository();
-        var newSkillAdded = await repo.AddNewSkills(skills.Skills.Select(x => x.Name).ToList());
-        return newSkillAdded;
+        return isUserCreated;
     }
 
     public static async Task<bool> ArchiveUser(int userId)
@@ -102,5 +96,41 @@ public static class FreelancerManager
             Console.WriteLine(e);
         }
         return false;
+    }
+
+    public static async Task<bool> UpdateUser(UserModel user)
+    {
+        var userRepo = new UserRepository();
+        var currentUser = new User
+        {
+            Id = user.Id,
+            Username = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Hobbies = user.Hobbies,
+            SkillSets = user.Skills,
+        };
+
+        var isUserUpdated = await userRepo.UpdateUser(currentUser);
+
+        return isUserUpdated;
+    }
+
+    public static async Task<bool> DeleteUser(UserModel user)
+    {
+        var userRepo = new UserRepository();
+        var currentUser = new User
+        {
+            Id = user.Id,
+            Username = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Hobbies = user.Hobbies,
+            SkillSets = user.Skills,
+        };
+
+        var isUserUpdated = await userRepo.UpdateUser(currentUser);
+
+        return isUserUpdated;
     }
 }
